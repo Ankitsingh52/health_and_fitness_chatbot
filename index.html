@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Speech Recognition Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      #responsed {
+        width: calc(100% - 20px); /* subtracting 20px for minor spaces on both ends */
+        margin: 10px; /* adding some margin to the textarea */
+      }
+    </style>
+  </head>
+  
+  <body>
+    <h1><center>Health and Fitness Chatbot</center></h1>
+    <h4><center>Please enter your query !</center></h4>
+    <form>
+      <div><center>
+        <textarea id="query" name="query" rows="10" cols="50"></textarea>
+      </center>
+      </div>
+      <div class="container">
+        <div class="vertical-center">
+          <button id="startButton">Start</button>
+          <button id="stopButton">Stop</button>
+          <br>
+          <button id="submitButton" type="submit">Submit</button>
+        </div>
+      </div>
+      
+    </form>
+    <div><center>
+      <textarea id="responsed" name="responsed" rows="30" cols="100"></textarea>
+        </center></div>
+    <script>
+      var recognition = new window.webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      
+      var startButton = document.getElementById('startButton');
+      var stopButton = document.getElementById('stopButton');
+      var queryInput = document.getElementById('query');
+      var form = document.querySelector('form');
+      
+      startButton.onclick = function() {
+        recognition.start();
+      }
+      
+      stopButton.onclick = function() {
+        recognition.stop();
+      }
+      
+      recognition.onresult = function(event) {
+        var interimTranscript = '';
+        var finalTranscript = '';
+        for (var i = event.resultIndex; i < event.results.length; i++) {
+          var transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        queryInput.value = finalTranscript;
+      }
+
+      form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      var query = queryInput.value;
+      fetch('http://localhost:3000', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        document.getElementById('responsed').value = data.response; // set the value of the textarea to the response
+      })
+      .catch(error => console.error(error));
+
+    });
+
+    </script>
+  </body>
+</html>
